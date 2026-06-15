@@ -1,0 +1,82 @@
+{\rtf1\ansi\ansicpg936\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 // game.js \uc0\u23436 \u25972 \u20195 \u30721 \u65288 \u30452 \u25509 \u20840 \u36873 \u26367 \u25442 \u65289 \
+const state = \{\
+    swaps: 1,\
+    times: 1,\
+    currentTeam: 'Lakers',\
+    currentEra: '1990s',\
+    slots: \{\}\
+\};\
+\
+// \uc0\u27169 \u25311 \u29699 \u21592 \u25968 \u25454 \u65288 \u32431 \u26412 \u22320 \u65292 \u26080 \u38656 \u32852 \u32593 \u65289 \
+const playersData = \{\
+    'Lakers': \{ 'PG': \{ name: '\uc0\u39764 \u26415 \u24072 ', ovr: 98 \}, 'SG': \{ name: '\u31185 \u27604 ', ovr: 97 \}, 'SF': \{ name: '\u35449 \u22982 \u26031 ', ovr: 96 \}, 'PF': \{ name: '\u27987 \u30473 ', ovr: 94 \}, 'C': \{ name: '\u22885 \u23612 \u23572 ', ovr: 99 \} \},\
+    'Bulls': \{ 'PG': \{ name: '\uc0\u32599 \u26031 ', ovr: 94 \}, 'SG': \{ name: '\u20052 \u20025 ', ovr: 99 \}, 'SF': \{ name: '\u30382 \u34028 ', ovr: 92 \}, 'PF': \{ name: '\u32599 \u24503 \u26364 ', ovr: 88 \}, 'C': \{ name: '\u22823 \u26412 \u38047 ', ovr: 84 \} \},\
+    // \uc0\u21487 \u20197 \u32487 \u32493 \u34917 \u20805 \u20854 \u20182 \u38431 \u20237 ...\
+\};\
+\
+function calculateRating(player) \{ return player ? player.ovr : 70; \}\
+\
+function drawCards() \{\
+    document.getElementById('current-team').textContent = state.currentTeam;\
+    document.getElementById('current-era').textContent = state.currentEra;\
+    // \uc0\u36825 \u37324 \u31616 \u21333 \u28210 \u26579 \u19968 \u19979 \u21517 \u23383 \u65292 \u20320 \u21487 \u20197 \u33258 \u24049 \u21152 \u22270 \u29255 \u36923 \u36753 \
+    Object.keys(state.slots).forEach(pos => \{\
+        const div = document.querySelector(`.slot[data-pos="$\{pos\}"] .player-name`);\
+        div.textContent = state.slots[pos] ? state.slots[pos].name : '???';\
+    \});\
+\}\
+\
+function changeTeam() \{ \
+    if (state.swaps <= 0) return; \
+    state.swaps--; \
+    const teams = ['Lakers', 'Bulls', 'Warriors', 'Kings', '\uc0\u28207 \u20013 \u28145 ']; \
+    state.currentTeam = teams[Math.floor(Math.random() * teams.length)]; \
+    state.slots = \{\}; // \uc0\u28165 \u31354 \u38453 \u23481 \
+    drawCards(); \
+\}\
+\
+function changeEra() \{ \
+    if (state.times <= 0) return; \
+    state.times--; \
+    const eras = ['1960s', '1980s', '1990s', '2000s', '2020s']; \
+    state.currentEra = eras[Math.floor(Math.random() * eras.length)]; \
+    drawCards(); \
+\}\
+\
+function showResult() \{\
+    const ratings = Object.values(state.slots).map(calculateRating);\
+    const geoMean = Math.pow(ratings.reduce((a,b)=>a*b,1), 1/ratings.length);\
+    const ovr = geoMean * 1.1;\
+    const wins = Math.round(82 * Math.min(Math.pow(ovr/110, 2.2), 1));\
+    \
+    document.getElementById('final-wins').textContent = wins;\
+    document.getElementById('final-losses').textContent = 82 - wins;\
+    document.getElementById('final-ovr').textContent = ovr.toFixed(1);\
+    document.getElementById('modal-result').style.display = 'flex';\
+\}\
+\
+function submitScore() \{\
+    const nickname = document.getElementById('nickname').value.trim();\
+    if (!nickname) return alert('\uc0\u35831 \u36755 \u20837 \u26165 \u31216 \u65281 ');\
+    \
+    // \uc0\u22240 \u20026 \u27809 \u26377 \u25968 \u25454 \u24211 \u20102 \u65292 \u36825 \u37324 \u25913 \u25104 \u23384 \u21040 \u27983 \u35272 \u22120 \u26412 \u22320 \
+    let scores = JSON.parse(localStorage.getItem('nbaScores') || '[]');\
+    scores.push(\{ name: nickname, wins: document.getElementById('final-wins').textContent \});\
+    localStorage.setItem('nbaScores', JSON.stringify(scores));\
+    \
+    alert('\uc0\u25552 \u20132 \u25104 \u21151 \u65281 \u65288 \u25104 \u32489 \u20445 \u23384 \u22312 \u26412 \u22320 \u27983 \u35272 \u22120 \u65289 ');\
+    document.getElementById('modal-result').style.display = 'none';\
+\}\
+\
+// \uc0\u32465 \u23450 \u25353 \u38062 \
+document.getElementById('btn-swap').onclick = changeTeam;\
+document.getElementById('btn-time').onclick = changeEra;\
+document.getElementById('btn-submit').onclick = submitScore;\
+document.getElementById('btn-restart}
